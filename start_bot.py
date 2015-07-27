@@ -2,6 +2,7 @@
 
 from easy_tweepy import EasyTweepy
 import time
+from random import choice
 
 wait=10
 
@@ -10,6 +11,12 @@ with EasyTweepy() as ez:
 	while(True):
 		tweets=ez.mentions()
 		for tweet in tweets:
-			ez.log('i saw a tweet')
-      #ez.reply(tweet,'oh lol')
+			if 'rock' in tweet.text.lower(): response_file='paper.txt'
+			elif 'paper' in tweet.text.lower(): response_file='scissors.txt'
+			elif 'scissors' in tweet.text.lower(): response_file='rock.txt'
+			else: continue
+		
+			with open(response_file) as responses:
+				response=choice(responses.read().splitlines())
+				ez.reply(tweet,response)
 		time.sleep(wait)

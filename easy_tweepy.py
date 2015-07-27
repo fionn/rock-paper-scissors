@@ -16,12 +16,12 @@ class EasyTweepy:
 			self.log('\n[ERROR] Traceback:\n ','  '.join(traceback.format_tb(tb)))
 			self.log('exiting...')
 
-		with open('latest_id','w') as f: f.write(str(self.latest_id))
+		with open('latest_id.txt','w') as f: f.write(str(self.latest_id))
 		self.__logfile.close()
 		return True
 
 	def __init__(self,debug=False):
-		self.__logfile=open('log','a')
+		self.__logfile=open('log.txt','a')
 
 		consumer = open('consumer.txt', 'r').read().splitlines()[:2]
 		access= open('access.txt', 'r').read().splitlines()[:2]
@@ -36,7 +36,7 @@ class EasyTweepy:
 			self.me='DEBUG MODE'
 
 		try: 
-			self.latest_id=int(open('latest_id', 'r').read())
+			self.latest_id=int(open('latest_id.txt', 'r').read())
 		except:
 			self.latest_id=0
 		self.log('Starting',self.me)
@@ -53,14 +53,15 @@ class EasyTweepy:
 			self.latest_id=max([tweet.id for tweet in tweets])
 		return tweets
 
-	def reply(tweet,msg):
-		self.log('sending a reply to tweet#'+tweet.id)
+	def reply(self,tweet,msg):
+		self.log('sending a reply to tweet#'+str(tweet.id))
+		self.log('-- '+msg)
 		pre_reply='@'+tweet.user.screen_name+' '
 		allowed_length=140-len(pre_reply)
-		if msg > allowed_length:
+		if len(msg) > allowed_length:
 			self.log('[WARNING] message too long (',len(pre_reply+msg),'characters )')
 			self.log('[WARNING] msg: '+pre_reply+msg)
 			return
-		self.api.update_status(status=pre_reply+msg, in_reply_to=tweet.id)
+		self.api.update_status(status=pre_reply+msg, in_reply_to_status_id=tweet.id)
 
 
