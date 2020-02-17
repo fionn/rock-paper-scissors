@@ -4,8 +4,9 @@
 import os
 import enum
 import logging
+from typing import Set
 
-import tweepy  # type: ignore
+import tweepy
 
 def configure_logger(module_name: str) -> logging.Logger:
     """Configure the logger"""
@@ -19,26 +20,27 @@ def configure_logger(module_name: str) -> logging.Logger:
 
 LOG = configure_logger(__name__)
 
-class Weapon(enum.IntEnum):
+@enum.unique
+class Weapon(enum.Enum):
     """Enum of weapons"""
     ROCK = 0
     PAPER = 1
     SCISSORS = 2
 
     @property
-    def beaten_by(self) -> "Weapon":
-        """Creates a new weapon that will beat itself"""
+    def defeated_by(self) -> "Weapon":
+        """Creates a new weapon that will defeat itself"""
         return self.__class__((self.value + 1) % 3)
 
     @property
-    def beats(self) -> "Weapon":
-        """Creates a new weapon that it will beat"""
+    def defeats(self) -> "Weapon":
+        """Creates a new weapon that it will defeat"""
         return self.__class__((self.value - 1) % 3)
 
 class RockPaperScissors:
     """Wrapper for the Twitter interface"""
 
-    MAX_COUNT = 1
+    MAX_COUNT = 1  # Will increase this in production
 
     def __init__(self) -> None:
         auth = tweepy.OAuthHandler(os.environ["API_KEY"],
@@ -50,21 +52,26 @@ class RockPaperScissors:
         self.me = self.api.me()  # pylint: disable=invalid-name
         self.timeline = self.api.user_timeline(count=self.MAX_COUNT)
 
+    def _already_replied_to(self, tweet: tweepy.models.Status) -> bool:
+        return tweet.id in set(tweet.in_reply_to_status_id
+                               for tweet in self.timeline)
+
+    @staticmethod
+    def _weapons(tweet: tweepy.models.Status) -> Set[Weapon]:
+        return set(weapon for weapon in Weapon
+                   if weapon.name in tweet.text.upper())
+
     def _filter(self, tweet: tweepy.models.Status) -> bool:
-        if tweet.in_reply_to_user_id != self.me.id:
+        if self._already_replied_to(tweet):
             return False
-        if tweet.id in set(tweet.in_reply_to_status_id
-                           for tweet in self.timeline):
+        if len(self._weapons(tweet)) != 1:
             return False
-        weapons_in_tweet = set(weapon for weapon in Weapon
-                               if weapon.name in tweet.text.upper())
-        return len(weapons_in_tweet) == 1
+        return tweet.in_reply_to_user_id == self.me.id
 
     @staticmethod
     def _compose(tweet: tweepy.models.Status) -> dict:
-        weapon = set(weapon for weapon in Weapon
-                     if weapon.name in tweet.text.upper()).pop()
-        text = f"@{tweet.author.screen_name} {weapon.beaten_by.name.title()}."
+        weapon = RockPaperScissors._weapons(tweet).pop()
+        text = f"@{tweet.author.screen_name} {weapon.defeated_by.name.title()}."
         return {"status": text, "in_reply_to_status_id": tweet.id}
 
     def mentions(self) -> list:
