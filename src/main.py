@@ -4,7 +4,7 @@
 import os
 import enum
 import logging
-from typing import Set
+from typing import Set, Any
 
 import tweepy
 
@@ -89,6 +89,17 @@ class RockPaperScissors:
         status = self.api.update_status(**composition)
         self.timeline.append(status)
         return status
+
+# pylint: disable=unused-argument
+def lambda_handler(event: dict, context: Any) -> dict:
+    """Lambda entry point"""
+    # type(context) = bootstrap.LambdaContext
+    try:
+        main()
+        return {"ok": True, "message": "ok"}
+    # pylint: disable=broad-except
+    except Exception as ex:
+        return {"ok": False, "message": str(ex)}
 
 def main() -> None:
     """Entry point"""

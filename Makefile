@@ -1,4 +1,4 @@
-SRC = src/
+SRC = src/main.py
 VENV ?= venv
 
 $(VENV): requirements.txt
@@ -8,6 +8,9 @@ $(VENV): requirements.txt
 
 tags: $(SRC)
 	@ctags --languages=python --python-kinds=-i -R $(SRC)
+
+lambda.zip: $(SRC) requirements.txt package_lambda.sh
+	@bash package_lambda.sh
 
 .PHONY: outdated
 outdated:
