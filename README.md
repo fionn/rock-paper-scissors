@@ -18,4 +18,8 @@ Just run it directly.
 
 ## Deployment
 
-TODO.
+### Heroku
+
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/fionn/rockpaperscissors)
+
+Add the remote with `git remote add heroku git@heroku.com:app-name.git` and use `git push heroku` to update the deployment.
