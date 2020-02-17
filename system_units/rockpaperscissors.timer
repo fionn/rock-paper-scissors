@@ -1,0 +1,10 @@
+# symlink to /etc/systemd/system/
+
+[Unit]
+Description=Rock paper scissors Twitter bot timer
+
+[Timer]
+OnCalendar=*:0/10
+
+[Install]
+WantedBy=timers.target

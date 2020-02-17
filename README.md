@@ -18,4 +18,8 @@ Just run it directly.
 
 ## Deployment
 
-TODO.
+### Systemd
+
+Add the above environment variables to `.env` in the repository root, without an `export` directive.
+Make the virtual environment.
+Then symlink or copy the unit files in [`system_units/`](system_units/) to `/etc/systemd/system/` and enable the timer.
