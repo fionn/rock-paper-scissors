@@ -2,3 +2,7 @@
 venv/
 .mypy_cache/
 __pycache__/
+*.zip
+.terraform/
+*.tfstate
+*.tfstate.backup

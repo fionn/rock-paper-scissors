@@ -4,7 +4,7 @@
 import os
 import enum
 import logging
-from typing import Set
+from typing import Set, Any
 
 import tweepy
 
@@ -89,6 +89,32 @@ class RockPaperScissors:
         status = self.api.update_status(**composition)
         self.timeline.append(status)
         return status
+
+def lambda_parameters() -> dict:
+    """Get parameters from SSM parameter store"""
+    # pylint: disable=import-outside-toplevel
+    import boto3  # type: ignore
+    ssm = boto3.client("ssm")
+    prefix = "rockpaperscissors-"
+    names = ["api-key", "api-secret", "access-token", "access-token-secret"]
+    names = [prefix + name for name in names]
+    parameters = [ssm.get_parameter(Name=name, WithDecryption=True)["Parameter"]
+                  for name in names]
+    return {p["Name"].split(prefix)[1].upper().replace("-", "_"): p["Value"]
+            for p in parameters}
+
+
+# pylint: disable=unused-argument
+def lambda_handler(event: dict, context: Any) -> dict:
+    """Lambda entry point"""
+    # type(context) = bootstrap.LambdaContext
+    os.environ.update(lambda_parameters())
+    try:
+        main()
+        return {"ok": True, "message": "ok"}
+    # pylint: disable=broad-except
+    except Exception as ex:
+        return {"ok": False, "message": str(ex)}
 
 def main() -> None:
     """Entry point"""
