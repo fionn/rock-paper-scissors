@@ -76,8 +76,7 @@ class RockPaperScissors:
 
     def mentions(self) -> list:
         """Get mentions"""
-        since_id = self.timeline[0].id
-        tweets = self.api.mentions_timeline(since_id=since_id,
+        tweets = self.api.mentions_timeline(since_id=self.timeline.since_id,
                                             count=self.MAX_COUNT)
         tweets = [tweet for tweet in tweets if self._filter(tweet)]
         return tweets
@@ -87,7 +86,9 @@ class RockPaperScissors:
         composition = self._compose(tweet)
         LOG.info("Replying to \"%s\" with \"%s\"",
                  tweet.text, composition["status"])
-        return self.api.update_status(**composition)
+        status = self.api.update_status(**composition)
+        self.timeline.append(status)
+        return status
 
 def main() -> None:
     """Entry point"""
