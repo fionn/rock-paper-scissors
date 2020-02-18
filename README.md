@@ -18,8 +18,16 @@ Just run it directly.
 
 ## Deployment
 
+
 ### Heroku
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/fionn/rockpaperscissors)
 
 Add the remote with `git remote add heroku git@heroku.com:app-name.git` and use `git push heroku` to update the deployment.
+
+### Systemd
+
+Add the above environment variables to `.env` in the repository root, without an `export` directive.
+Make the virtual environment.
+Then symlink or copy the unit files in [`system_units/`](system_units/) to `/etc/systemd/system/` and enable the timer.
+

@@ -1,0 +1,35 @@
+# symlink to /etc/systemd/system/
+[Unit]
+Description=Rock paper scissors Twitter bot
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/fionn/bots/rockpaperscissors/
+EnvironmentFile=/home/fionn/bots/rockpaperscissors/.env
+ExecStart=/home/fionn/bots/rockpaperscissors/venv/bin/python3 -u src/main.py
+Restart=on-failure
+RestartSec=900
+
+DynamicUser=true
+PrivateDevices=true
+ProtectHostname=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+SystemCallArchitectures=native
+LockPersonality=true
+MemoryDenyWriteExecute=true
+InaccessiblePaths=/dev /boot
+RestrictRealtime=true
+PrivateMounts=true
+MountFlags=private
+PrivateUsers=true
+UMask=0777
+RestrictAddressFamilies=AF_INET AF_INET6
+RestrictNamespaces=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged @resources
+ProtectKernelLogs=true
