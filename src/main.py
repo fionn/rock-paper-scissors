@@ -40,7 +40,7 @@ class Weapon(enum.Enum):
 class RockPaperScissors:
     """Wrapper for the Twitter interface"""
 
-    MAX_COUNT = 1  # Will increase this in production
+    MAX_COUNT = 20
 
     def __init__(self) -> None:
         auth = tweepy.OAuthHandler(os.environ["API_KEY"],
