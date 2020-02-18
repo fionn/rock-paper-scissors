@@ -11,7 +11,14 @@ locals {
   }
 }
 
-data "aws_iam_policy_document" "lambda_policy" {
+data "aws_caller_identity" "current" {}
+
+resource "aws_kms_key" "rockpaperscissors" {
+  description = "${local.name} parameter store key"
+  tags        = local.common_tags
+}
+
+data "aws_iam_policy_document" "lambda" {
   statement {
     actions = [
       "sts:AssumeRole"
@@ -23,39 +30,88 @@ data "aws_iam_policy_document" "lambda_policy" {
   }
 }
 
+data "aws_iam_policy_document" "ssm" {
+  statement {
+    actions = [
+      "ssm:GetParameter",
+    ]
+    resources = [
+      "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/${local.name}-*"
+    ]
+  }
+  statement {
+    actions = [
+      "kms:Decrypt",
+    ]
+    resources = [
+      aws_kms_key.rockpaperscissors.arn
+    ]
+  }
+}
+
+resource "aws_iam_policy" "ssm" {
+  name   = "${local.name}-ssm"
+  policy = data.aws_iam_policy_document.ssm.json
+}
+
 resource "aws_iam_role" "rockpaperscissors" {
-  name               = "${local.name}-lambda"
-  assume_role_policy = data.aws_iam_policy_document.lambda_policy.json
+  name               = local.name
+  assume_role_policy = data.aws_iam_policy_document.lambda.json
   tags               = local.common_tags
 }
 
-resource "aws_iam_role_policy_attachment" "logging_policy" {
+resource "aws_iam_role_policy_attachment" "logs" {
   role       = aws_iam_role.rockpaperscissors.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
+resource "aws_iam_role_policy_attachment" "ssm" {
+  role       = aws_iam_role.rockpaperscissors.name
+  policy_arn = aws_iam_policy.ssm.arn
+}
+
 resource "aws_lambda_function" "rockpaperscissors" {
-  description   = "Play rock paper scissors on Twitter"
-  filename      = local.lambda_package
-  function_name = local.name
-  handler       = "main.lambda_handler"
-  role          = aws_iam_role.rockpaperscissors.arn
-  timeout       = 15
-
+  description      = "Play rock paper scissors on Twitter"
+  filename         = local.lambda_package
+  function_name    = local.name
+  handler          = "main.lambda_handler"
+  role             = aws_iam_role.rockpaperscissors.arn
+  timeout          = 15
   source_code_hash = filebase64sha256(local.lambda_package)
+  runtime          = "python3.8"
+  tags             = local.common_tags
+}
 
-  runtime = "python3.8"
+resource "aws_ssm_parameter" "rockpaperscissors_api_key" {
+  name   = "${local.name}-api-key"
+  type   = "SecureString"
+  value  = var.api_key
+  key_id = aws_kms_key.rockpaperscissors.key_id
+  tags   = local.common_tags
+}
 
-  environment {
-    variables = {
-      API_KEY             = var.api_key
-      API_SECRET          = var.api_secret
-      ACCESS_TOKEN        = var.access_token
-      ACCESS_TOKEN_SECRET = var.access_token_secret
-    }
-  }
+resource "aws_ssm_parameter" "rockpaperscissors_api_secret" {
+  name   = "${local.name}-api-secret"
+  type   = "SecureString"
+  value  = var.api_secret
+  key_id = aws_kms_key.rockpaperscissors.key_id
+  tags   = local.common_tags
+}
 
-  tags = local.common_tags
+resource "aws_ssm_parameter" "rockpaperscissors_access_token" {
+  name   = "${local.name}-access-token"
+  type   = "SecureString"
+  value  = var.access_token
+  key_id = aws_kms_key.rockpaperscissors.key_id
+  tags   = local.common_tags
+}
+
+resource "aws_ssm_parameter" "rockpaperscissors_access_token_secret" {
+  name   = "${local.name}-access-token-secret"
+  type   = "SecureString"
+  value  = var.access_token_secret
+  key_id = aws_kms_key.rockpaperscissors.key_id
+  tags   = local.common_tags
 }
 
 resource "aws_cloudwatch_event_rule" "every_n_minutes" {
