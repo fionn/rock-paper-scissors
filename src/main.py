@@ -4,6 +4,7 @@
 import os
 import enum
 import logging
+import unicodedata
 from typing import Set, Any
 
 import tweepy
@@ -58,8 +59,9 @@ class RockPaperScissors:
 
     @staticmethod
     def _weapons(tweet: tweepy.models.Status) -> Set[Weapon]:
+        normalised_text = unicodedata.normalize("NFKC", tweet.text)
         return set(weapon for weapon in Weapon
-                   if weapon.name in tweet.text.upper())
+                   if weapon.name in normalised_text.upper())
 
     def _filter(self, tweet: tweepy.models.Status) -> bool:
         if self._already_replied_to(tweet):
@@ -102,7 +104,6 @@ def lambda_parameters() -> dict:
                   for name in names]
     return {p["Name"].split(prefix)[1].upper().replace("-", "_"): p["Value"]
             for p in parameters}
-
 
 # pylint: disable=unused-argument
 def lambda_handler(event: dict, context: Any) -> dict:
