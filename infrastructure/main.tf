@@ -117,7 +117,7 @@ resource "aws_ssm_parameter" "rockpaperscissors_access_token_secret" {
 resource "aws_cloudwatch_event_rule" "every_n_minutes" {
   name                = "every-n-minutes"
   description         = "Fires every n minutes"
-  schedule_expression = "rate(10 minutes)"
+  schedule_expression = "rate(5 minutes)"
 }
 
 resource "aws_cloudwatch_event_target" "rockpaperscissors" {
