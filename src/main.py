@@ -75,11 +75,11 @@ class RockPaperScissors:
         return {"status": text, "in_reply_to_status_id": tweet.id}
 
     def mentions(self) -> list:
-        """Get mentions"""
+        """Get mentions in reverse order"""
         tweets = self.api.mentions_timeline(since_id=self.timeline.since_id,
                                             count=self.MAX_COUNT)
         tweets = [tweet for tweet in tweets if self._filter(tweet)]
-        return tweets
+        return tweets[::-1]
 
     def reply(self, tweet: tweepy.models.Status) -> tweepy.models.Status:
         """Win the game"""
