@@ -1,6 +1,5 @@
 locals {
-  name           = "rockpaperscissors"
-  lambda_package = "${path.root}/../lambda.zip"
+  name = "rockpaperscissors"
 }
 
 locals {
@@ -9,6 +8,11 @@ locals {
     name       = local.name
     platform   = "twitter"
   }
+}
+
+data "external" "lambda" {
+  working_dir = "${path.root}/../"
+  program     = ["make", "--always-make", "function.zip"]
 }
 
 data "aws_caller_identity" "current" {}
@@ -72,12 +76,12 @@ resource "aws_iam_role_policy_attachment" "ssm" {
 
 resource "aws_lambda_function" "rockpaperscissors" {
   description      = "Play rock paper scissors on Twitter"
-  filename         = local.lambda_package
+  filename         = data.external.lambda.result.path
   function_name    = local.name
   handler          = "main.lambda_handler"
   role             = aws_iam_role.rockpaperscissors.arn
   timeout          = 15
-  source_code_hash = filebase64sha256(local.lambda_package)
+  source_code_hash = filebase64sha256(data.external.lambda.result.path)
   runtime          = "python3.8"
   tags             = local.common_tags
 }

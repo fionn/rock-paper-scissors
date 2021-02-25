@@ -1,23 +1,35 @@
 #!/bin/bash
 
-set -euo pipefail
+set -Eeo pipefail
 
 trap cleanup ERR
 
-target="lambda.zip"
-src="src/main.py"
-deps=$(mktemp -d)
-
 function cleanup {
     rm -r "$deps" || true
+    echo "Cleaning up $deps"
 }
 
-pip install -r requirements.txt --target "$deps"
+set -u
 
-cd "$deps"
-zip -r9v "$OLDPWD"/$target .
-cd -
+function main {
+    readonly target="$1"
+    local -r src="$2"
 
-zip -gjv $target $src
+    readonly deps=$(mktemp -d)
 
-cleanup
+    pip install -r requirements.txt --target "$deps"
+
+    pushd "$deps"
+    zip -r9vZb "$OLDPWD"/"$target" .
+    popd
+
+    zip -gjv "$target" "$src"
+
+    readonly checksum=$(sha256sum "$target" | cut -d " " -f 1)
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@" >&2
+    jq -n '$ARGS.named' --arg filename "$target" --arg checksum "$checksum" --arg path "$(pwd)/$target"
+    cleanup >&2
+fi

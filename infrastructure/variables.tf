@@ -16,6 +16,7 @@ variable "api_key" {
 variable "api_secret" {
   type        = string
   description = "Twitter API secret key"
+  sensitive   = true
 }
 
 variable "access_token" {
@@ -26,4 +27,5 @@ variable "access_token" {
 variable "access_token_secret" {
   type        = string
   description = "Twitter API access token secret"
+  sensitive   = true
 }

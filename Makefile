@@ -9,8 +9,8 @@ $(VENV): requirements.txt
 tags: $(SRC)
 	@ctags --languages=python --python-kinds=-i -R $(SRC)
 
-lambda.zip: $(SRC) requirements.txt package_lambda.sh
-	@bash package_lambda.sh
+function.zip: $(SRC) requirements.txt package_lambda.sh
+	@bash package_lambda.sh $@ $(SRC)
 
 .PHONY: outdated
 outdated:
@@ -23,3 +23,7 @@ lint:
 .PHONY: typecheck
 typecheck:
 	@mypy $(SRC)
+
+.PHONY: clean
+clean:
+	@rm function.zip
