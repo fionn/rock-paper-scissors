@@ -10,7 +10,7 @@ Export the following environment variables for authenticating to the Twitter API
 * `ACCESS_TOKEN`,
 * `ACCESS_TOKEN_SECRET`.
 
-(See [https://github.com/fionn/twitterauthenticator](twitterauthenticator) for how to generate access tokens.)
+(See [fionn/twitter-authenticator](https://github.com/fionn/twitter-authenticator) for how to generate access tokens.)
 
 ## Usage
 
